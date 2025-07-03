@@ -6,8 +6,9 @@ A simple diff tool with syntax highlighting optimized for dark terminal backgrou
 
 - **Dual input modes**: Compare files directly or process diff from STDIN
 - **Syntax highlighting**: Keywords, strings, comments, numbers with dark theme colors
-- **Interactive pager**: Navigate through large diffs with vim-like keybindings
+- **Background coloring**: Red/green backgrounds for removed/added lines that extend full terminal width
 - **Git integration**: Works as git pager and diffFilter
+- **External pager support**: Outputs to stdout for use with `less` or other pagers
 
 ## Installation
 
@@ -32,41 +33,35 @@ git diff | sabun
 diff -u file1 file2 | sabun
 ```
 
+### Use with external pager
+```bash
+sabun file1.rs file2.rs | less -R
+git diff | sabun | less -R
+```
+
 ### Git integration
 Add to your `~/.gitconfig`:
 ```ini
 [core]
-    pager = sabun
+    pager = sabun | less -R
 
 [interactive]
     diffFilter = sabun
 ```
 
-## Pager Controls
-
-When viewing large diffs (>20 lines), sabun enters interactive mode:
-
-- `j` / `↓` - Scroll down one line
-- `k` / `↑` - Scroll up one line  
-- `d` - Scroll down half page
-- `u` - Scroll up half page
-- `f` / `PgDn` / `Space` - Scroll down full page
-- `b` / `PgUp` - Scroll up full page
-- `g` - Go to beginning
-- `G` - Go to end
-- `q` / `Esc` - Quit
-
 ## Color Scheme
 
 Optimized for dark terminals:
 - **File headers**: Bright white, bold
-- **Added lines**: Green text with dark green background
-- **Removed lines**: Red text with dark red background
-- **Context lines**: Regular white
+- **Added lines**: Dark green background (full width) with syntax highlighting
+- **Removed lines**: Dark red background (full width) with syntax highlighting  
+- **Context lines**: Regular white with syntax highlighting
+- **Hunk headers**: Cyan, bold
 - **Keywords**: Blue, bold
 - **Strings**: Bright green
 - **Comments**: Dimmed green
 - **Numbers**: Bright yellow
+- **Types**: Bright cyan
 
 ## Examples
 
@@ -74,9 +69,12 @@ Optimized for dark terminals:
 # Compare Rust files
 sabun src/main.rs src/lib.rs
 
-# Use with git
-git show HEAD | sabun
+# Use with git and external pager
+git show HEAD | sabun | less -R
 
-# Pipe any diff
-diff -u old.txt new.txt | sabun
+# Pipe any diff through sabun
+diff -u old.txt new.txt | sabun | less -R
+
+# Direct output (no pager)
+git diff | sabun
 ```
