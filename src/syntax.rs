@@ -24,7 +24,7 @@ impl SyntaxHighlighter {
             Path::new(f)
                 .extension()
                 .and_then(|ext| ext.to_str())
-                .map(move |ext| match ext {
+                .map(|ext| match ext {
                     "rs" => "rust",
                     "js" | "javascript" => "javascript", 
                     "py" | "python" => "python",

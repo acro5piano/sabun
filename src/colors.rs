@@ -20,15 +20,13 @@ impl DarkTheme {
     
     pub fn added_line() -> ColorSpec {
         let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Green))
-            .set_bg(Some(Color::Rgb(0, 64, 0)));
+        spec.set_bg(Some(Color::Rgb(0, 40, 0))); // Dark green background
         spec
     }
     
     pub fn removed_line() -> ColorSpec {
         let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Red))
-            .set_bg(Some(Color::Rgb(64, 0, 0)));
+        spec.set_bg(Some(Color::Rgb(40, 0, 0))); // Dark red background
         spec
     }
     
