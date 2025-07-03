@@ -7,7 +7,6 @@ pub enum SyntaxType {
     String,
     Comment,
     Number,
-    Function,
     Type,
     Normal,
 }

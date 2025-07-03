@@ -11,13 +11,6 @@ impl DarkTheme {
         spec
     }
     
-    pub fn line_number() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Cyan))
-            .set_dimmed(true);
-        spec
-    }
-    
     pub fn added_line() -> ColorSpec {
         let mut spec = ColorSpec::new();
         spec.set_bg(Some(Color::Rgb(0, 40, 0))); // Dark green background
@@ -43,45 +36,4 @@ impl DarkTheme {
         spec
     }
     
-    pub fn keyword() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Blue))
-            .set_intense(true);
-        spec
-    }
-    
-    pub fn string() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Green))
-            .set_intense(true);
-        spec
-    }
-    
-    pub fn comment() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Green))
-            .set_dimmed(true);
-        spec
-    }
-    
-    pub fn number() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Yellow))
-            .set_intense(true);
-        spec
-    }
-    
-    pub fn function() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Blue))
-            .set_intense(true);
-        spec
-    }
-    
-    pub fn type_name() -> ColorSpec {
-        let mut spec = ColorSpec::new();
-        spec.set_fg(Some(Color::Cyan))
-            .set_intense(true);
-        spec
-    }
 }

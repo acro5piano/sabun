@@ -6,8 +6,6 @@ use crate::syntax::{SyntaxHighlighter, SyntaxType};
 #[derive(Debug, Clone)]
 pub struct DiffLine {
     pub line_type: DiffLineType,
-    pub old_line_number: Option<usize>,
-    pub new_line_number: Option<usize>,
     pub content: String,
     pub syntax_highlights: Vec<(SyntaxType, String)>,
 }
@@ -43,16 +41,12 @@ impl DiffProcessor {
         
         result.push(DiffLine {
             line_type: DiffLineType::FileHeader,
-            old_line_number: None,
-            new_line_number: None,
             content: format!("--- {}", old_name),
             syntax_highlights: vec![(SyntaxType::Normal, format!("--- {}", old_name))],
         });
         
         result.push(DiffLine {
             line_type: DiffLineType::FileHeader,
-            old_line_number: None,
-            new_line_number: None,
             content: format!("+++ {}", new_name),
             syntax_highlights: vec![(SyntaxType::Normal, format!("+++ {}", new_name))],
         });
@@ -64,8 +58,6 @@ impl DiffProcessor {
             if group_idx > 0 {
                 result.push(DiffLine {
                     line_type: DiffLineType::Context,
-                    old_line_number: None,
-                    new_line_number: None,
                     content: String::new(),
                     syntax_highlights: vec![(SyntaxType::Normal, String::new())],
                 });
@@ -83,33 +75,28 @@ impl DiffProcessor {
             
             result.push(DiffLine {
                 line_type: DiffLineType::HunkHeader,
-                old_line_number: None,
-                new_line_number: None,
                 content: hunk_header.clone(),
                 syntax_highlights: vec![(SyntaxType::Normal, hunk_header)],
             });
             
-            let mut old_line_no = old_start;
-            let mut new_line_no = new_start;
+            let mut _old_line_no = old_start;
+            let mut _new_line_no = new_start;
             
             for op in group {
                 for change in diff.iter_changes(op) {
-                    let (line_type, old_line_num, new_line_num) = match change.tag() {
+                    let line_type = match change.tag() {
                         ChangeTag::Delete => {
-                            let result = (DiffLineType::Removed, Some(old_line_no), None);
-                            old_line_no += 1;
-                            result
+                            _old_line_no += 1;
+                            DiffLineType::Removed
                         },
                         ChangeTag::Insert => {
-                            let result = (DiffLineType::Added, None, Some(new_line_no));
-                            new_line_no += 1;
-                            result
+                            _new_line_no += 1;
+                            DiffLineType::Added
                         },
                         ChangeTag::Equal => {
-                            let result = (DiffLineType::Context, Some(old_line_no), Some(new_line_no));
-                            old_line_no += 1;
-                            new_line_no += 1;
-                            result
+                            _old_line_no += 1;
+                            _new_line_no += 1;
+                            DiffLineType::Context
                         },
                     };
                     
@@ -120,8 +107,6 @@ impl DiffProcessor {
                     
                     result.push(DiffLine {
                         line_type,
-                        old_line_number: old_line_num,
-                        new_line_number: new_line_num,
                         content: line_content,
                         syntax_highlights,
                     });
@@ -135,8 +120,6 @@ impl DiffProcessor {
     pub fn parse_diff(&self, diff_content: &str) -> Result<Vec<DiffLine>> {
         let mut result = Vec::new();
         let mut current_language = None;
-        let mut old_line_no = 0;
-        let mut new_line_no = 0;
         
         for line in diff_content.lines() {
             if line.starts_with("--- ") {
@@ -147,8 +130,6 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::FileHeader,
-                    old_line_number: None,
-                    new_line_number: None,
                     content: line.to_string(),
                     syntax_highlights: vec![(SyntaxType::Normal, line.to_string())],
                 });
@@ -162,21 +143,13 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::FileHeader,
-                    old_line_number: None,
-                    new_line_number: None,
                     content: line.to_string(),
                     syntax_highlights: vec![(SyntaxType::Normal, line.to_string())],
                 });
             } else if line.starts_with("@@") {
-                if let Some(captures) = parse_hunk_header(line) {
-                    old_line_no = captures.0;
-                    new_line_no = captures.1;
-                }
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::HunkHeader,
-                    old_line_number: None,
-                    new_line_number: None,
                     content: line.to_string(),
                     syntax_highlights: vec![(SyntaxType::Normal, line.to_string())],
                 });
@@ -188,12 +161,9 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::Added,
-                    old_line_number: None,
-                    new_line_number: Some(new_line_no),
                     content,
                     syntax_highlights,
                 });
-                new_line_no += 1;
             } else if line.starts_with('-') {
                 let content = line.chars().skip(1).collect::<String>();
                 let syntax_highlights = self.syntax_highlighter
@@ -202,12 +172,9 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::Removed,
-                    old_line_number: Some(old_line_no),
-                    new_line_number: None,
                     content,
                     syntax_highlights,
                 });
-                old_line_no += 1;
             } else if line.starts_with(' ') {
                 let content = line.chars().skip(1).collect::<String>();
                 let syntax_highlights = self.syntax_highlighter
@@ -216,13 +183,9 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::Context,
-                    old_line_number: Some(old_line_no),
-                    new_line_number: Some(new_line_no),
                     content,
                     syntax_highlights,
                 });
-                old_line_no += 1;
-                new_line_no += 1;
             } else {
                 let syntax_highlights = self.syntax_highlighter
                     .highlight_line(line, current_language)
@@ -230,8 +193,6 @@ impl DiffProcessor {
                 
                 result.push(DiffLine {
                     line_type: DiffLineType::Context,
-                    old_line_number: None,
-                    new_line_number: None,
                     content: line.to_string(),
                     syntax_highlights,
                 });
@@ -242,17 +203,3 @@ impl DiffProcessor {
     }
 }
 
-fn parse_hunk_header(line: &str) -> Option<(usize, usize)> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-    if parts.len() >= 3 {
-        let old_part = parts[1].strip_prefix('-')?;
-        let new_part = parts[2].strip_prefix('+')?;
-        
-        let old_line = old_part.split(',').next()?.parse().ok()?;
-        let new_line = new_part.split(',').next()?.parse().ok()?;
-        
-        Some((old_line, new_line))
-    } else {
-        None
-    }
-}
